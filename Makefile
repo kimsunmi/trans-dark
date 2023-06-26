@@ -14,7 +14,7 @@ TARGET_precom = TRANS_precom
 
 all:  $(TARGET_precom) $(TARGET_SETUP) $(TARGET_COMMIT) $(TARGET_OPEN) $(TARGET_VERIFY)
 # $(TARGET_TEST)
-
+test: $(TARGET_SETUP) $(TARGET_TEST)
 
 clean:
 	rm -rf *.dSYM *.a *.o $(TARGET_TEST)  $(TARGET_precom) $(TARGET_SETUP) $(TARGET_COMMIT) $(TARGET_OPEN) $(TARGET_VERIFY) 
@@ -23,7 +23,7 @@ clean_all:
 	rm -rf *.dSYM *.a *.o $(TARGET_TEST) Txt/commit.txt Txt/pp.txt Txt/proof.txt Txt/poly.txt $(TARGET_SETUP) $(TARGET_COMMIT) $(TARGET_OPEN) $(TARGET_VERIFY)
 
 $(TARGET_TEST): $(SOURCE_DIR)test.c 
-	$(CC) -o $@ $(SOURCE_DIR)test.c $(SOURCE_DIR)polynomial_commit.c $(SOURCE_DIR)Reducible_polynomial_commitment.c $(SOURCE_DIR)util.c $(SOURCE_DIR)codeTimer.c $(CFLAGS)
+	$(CC) -o $@ $(SOURCE_DIR)test.c $(SOURCE_DIR)polynomial_commit.c $(SOURCE_DIR)polynomial_open_verify.c $(SOURCE_DIR)util.c $(SOURCE_DIR)codeTimer.c $(CFLAGS)
 
 $(TARGET_SETUP): $(TEST_CODE_DIR)setup_test.c
 	$(CC) -o $@ $(TEST_CODE_DIR)setup_test.c $(SOURCE_DIR)polynomial_commit.c $(SOURCE_DIR)polynomial_open_verify.c $(SOURCE_DIR)util.c $(SOURCE_DIR)codeTimer.c $(CFLAGS) 

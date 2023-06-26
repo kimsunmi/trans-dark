@@ -1,129 +1,73 @@
-#include "../hedder/Reducible_commitment.h"
-#include "../hedder/Reducible_polynomial_commitment.h"
+#include "../hedder/polynomial_commit.h"
+#include "../hedder/polynomial_open_verify.h"
 #include "../hedder/util.h"
-#include <omp.h>
-int global_num_threads = 1;
+
+// group G에서 g, m, 스칼라 q를 뽑아 g*m 연산과 g^q연산의 차이
+
+
 int main(int argc, char *argv[])
 {
-    FILE *fp;
-    char buffer[10000];
-    int flag = 1;
-    int m = 1;
-    int LOG_D;
-	int security_level = 2048; // 
-	unsigned long long int RunTime = 0, RunTime_IO = 0;
+    _struct_polynomial_pp_ rsa_pp = {0};
+    // struct rsa rsa_pp;
+    fmpz_t* pre_table;
+    fmpz_t rsa_g;
     
-    _struct_polynomial_pp_ pp, pp1, pp2, pp3;
-    _struct_poly_ poly;
-    _struct_open_ open;
-    _struct_commit_ cm, cm1, cm2;
-    _struct_proof_ proof1, proof2;
+    BIGNUM* tmp = BN_new();
+    BIGNUM* bn_4 = BN_new();
+	BIGNUM* bn_3 = BN_new();
+    
+    fmpz_t fmpz_p;
+    fmpz_t q;
 
-    fmpz_t l;
-    fmpz_init(l);
-    fmpz_init(cm.C);
-    fmpz_init(open.r);
-    fmpz_init(open.Q);
-    global_num_threads = 1;
-    
-	if(argc == 2)
-		LOG_D = atoi(argv[1]);
-    else if(argc == 3)
-    {
-		security_level = atoi(argv[1]);
-		LOG_D = atoi(argv[2]);        
+    Read_pp(&rsa_pp);
+
+    unsigned long long int Runtime_rsa_g = 0, Runtime_rsa_s = 0;
+
+    fmpz_init(rsa_g);
+
+    pre_table = (fmpz_t*)malloc(sizeof(fmpz_t)*rsa_pp.d);
+    for(int i = 0; i < rsa_pp.d; i++){
+        fmpz_init(pre_table[i]);
     }
-    else if(argc == 4)
-    {
-		security_level = atoi(argv[1]);
-		LOG_D = atoi(argv[2]);          
-        global_num_threads = atoi(argv[3]) < omp_get_max_threads() ? atoi(argv[3]) : omp_get_max_threads();
+
+    // generate another g
+	BN_generate_prime_ex(tmp, rsa_pp.cm_pp.security_level >> 1,0,NULL,NULL,NULL);
+	fmpz_set_str(rsa_g, BN_bn2hex(tmp), 16);
+
+    printf("새로 뽑은 g: ");
+    fmpz_print(rsa_g);
+    printf("\n");
+    fmpz_print(rsa_pp.cm_pp.g);
+    printf("\n");
+
+    // 시간차이를 보기 위해 d번 연산 반복-> G*g vs g^q(scalar)
+    // G*g
+    TimerOn();
+    for(int i = 1; i < rsa_pp.d; i++){
+        fmpz_mul(rsa_g, rsa_pp.cm_pp.g, rsa_g);
+        fmpz_mod(rsa_g, rsa_g, rsa_pp.cm_pp.G);
     }
-	else
-		LOG_D = 10;
-	printf("d_bit %d d-%d\r\n", LOG_D, (1<<(LOG_D)));
+    Runtime_rsa_g = TimerOff();
 
-	make_poly(&poly,(1<<(LOG_D)));
-    Read_poly(&poly);
-
-	TimerOn();
-    poly_commitment_setup(&pp, security_level, m, poly.d, &poly);
-    RunTime = TimerOff();
-	printf("KeyGen_Time %12llu\r\n", RunTime);
-
-	TimerOn();
-    Write_pp(&pp);
-    RunTime_IO = TimerOff();
-	printf("KeyGen_I/O_ %12llu\r\n\n", RunTime_IO);
-    
-
-	fp = fopen("record/setup.txt", "a+");
-	fprintf(fp, "%4d %9d %12llu %12llu %2d\r\n", pp.cm_pp.security_level, poly.d, RunTime_IO, RunTime, global_num_threads);
-	fclose(fp);
-
-    start_precomputation(&pp, poly);
-
-	//////////////////////////////////////////////////////////////////
-
-	TimerOn();
-    Read_pp(&pp1);
-    RunTime_IO = TimerOff();
-
-	TimerOn();
-    commit_precompute(&cm, pp1.cm_pp, poly, pp1.q, -1);
-    RunTime = TimerOff();
-	printf("Commit_Time %12llu\r\n", RunTime);
-
-	TimerOn();
-    Write_Commit("./Txt/commit.txt", &cm);
-    RunTime_IO += TimerOff();
-	printf("Commit_I/O_ %12llu\r\n\n", RunTime_IO);
-
-	fp = fopen("record/commit.txt", "a+");
-	fprintf(fp, "%4d %9d %12llu %12llu %2d\r\n", pp1.cm_pp.security_level, poly.d, RunTime_IO, RunTime, global_num_threads);
-	fclose(fp);
-
-    //////////////////////////////////////////////////////////////////
-	TimerOn();
-    Read_pp(&pp2);
-    Read_Commit("./Txt/commit.txt", &cm1);
-    RunTime_IO = TimerOff();
+    // g^q
+    fmpz_set(pre_table[0], rsa_pp.cm_pp.g);
 
     TimerOn();
-    Open(&proof1, &pp2, &cm1, &poly);
-    RunTime = TimerOff();
-	printf("__Poly_Open %12llu\r\n", RunTime);
+    for(int j=1; j < rsa_pp.d; j++)
+    {
+        fmpz_powm(pre_table[j], pre_table[j-1],q,rsa_pp.cm_pp.G);
+    }
+    Runtime_rsa_s = TimerOff();
 
-    TimerOn();
-    Write_proof(&proof1);
-    RunTime_IO += TimerOff();
-	printf("__Open_I/O_ %12llu\r\n\n", RunTime_IO);
+    printf("group_Time %12llu [us]\n", Runtime_rsa_g);
+    printf("scalar_Time %12llu [us]\n", Runtime_rsa_s);
 
-	fp = fopen("record/open.txt", "a+");
-	fprintf(fp, "%4d %9d %12llu %12llu %2d\r\n", pp2.cm_pp.security_level, poly.d, RunTime_IO, RunTime, global_num_threads);	
-	fclose(fp);
-
-    //////////////////////////////////////////////////////////////////
-	TimerOn();
-    Read_pp(&pp3);
-    Read_Commit("./Txt/commit.txt", &cm2);
-    Read_proof(&proof2);
-    RunTime_IO = TimerOff();
-
-    TimerOn();
-    flag = Verify(&proof2, &pp3, &cm2,);
-    RunTime = TimerOff();
-    printf("Poly_Verify %12llu\r\n", RunTime);
-    printf("Verify_I/O_ %12llu [%d]\r\n\n", RunTime_IO, flag);
-
-
-	fp = fopen("record/verify.txt", "a+");
-	fprintf(fp, "%4d %9d %12llu %12llu %2d [%d]\r\n", pp3.cm_pp.security_level, poly.d, RunTime_IO, RunTime, global_num_threads, flag);			
-	fclose(fp);
-
-	fp = fopen("record/size.txt", "a+");
-	fprintf(fp, "%d %d %d %d\r\n", pp3.cm_pp.security_level, getfilesize("Txt/pp.txt"), getfilesize("Txt/commit.txt"), getfilesize("Txt/proof.txt"));
-	fclose(fp);
+    fmpz_clear(fmpz_p);
+    fmpz_clear(q);
+    for(int i=0; i<rsa_pp.n; i++){
+        fmpz_clear(pre_table[i]);
+    }
+    free(pre_table);
 
 	return 0;
 }

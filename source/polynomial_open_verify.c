@@ -85,9 +85,9 @@ int open_multipoly(fmpz_t* D, const _struct_polynomial_pp_* pp, const _struct_po
     fmpz_init(cm_tmp.C); 
     fmpz_init_set(pp_tmp.G, pp->cm_pp.G);
     fmpz_init(pp_tmp.g);
-    
-    // index i에 대해서만 d_i <- R_i^g_(i, R)(q) 계산 
     fmpz_set(pp_tmp.g, pp->R[i]);
+
+    // index i에 대해서만 d_i <- R_i^g_(i, R)(q) 계산 
     commit_precompute(&cm_tmp, pp_tmp, poly, q, i);
     fmpz_set(D[i], cm_tmp.C);
     // printf("d[%d]", i); fmpz_print(D[i]); printf("\n");
@@ -314,7 +314,17 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
     fmpz_one(one);
 
     Hprime_func(l, proof->D, proof->n, cm->C); 
-
+    printf("l: ");
+    fmpz_print(l);
+    printf("\n");
+    printf("D: ");
+    fmpz_print(proof->D);
+    printf("\n");
+    printf("n: %d",proof->n);
+    printf("\n");
+    printf("c: ");
+    fmpz_print(cm->C);
+    printf("\n");
     // C * product_(1,mu) D_i
     fmpz_set(CD, cm->C);
     for(int i = 0; i< pp->n; i++){
