@@ -55,7 +55,9 @@ int pokRep_setup(_struct_polynomial_pp_* pp, const int lamda, const int m, const
 
 	fmpz_zero(pp->q);
 	fmpz_setbit(pp->q, qbit); // set qbit with pp->q
-
+    printf("q: ");
+    fmpz_print(pp->q);
+    printf("\n");
     // pp->cmp_pp: G = lamda size prime*prime, g = lamda/2 size random prime 
     KeyGen_RSAsetup(&(pp->cm_pp), lamda);
 
@@ -108,9 +110,9 @@ int pokRep_open(fmpz_t r, fmpz_t s[], fmpz_t Q, const fmpz_t l, const _struct_po
     fmpz_init(open.r);
     fmpz_init(open.Q);
     fmpz_init_set(pp_tmp.G, pp->cm_pp.G);
+    fmpz_init_set(pp_tmp.g, pp->cm_pp.g);
 
     fmpz_one(Q);  
-    fmpz_init_set(pp_tmp.g, pp->cm_pp.g);
 
     pokRep_open_precom(&open, &cm, &pp_tmp, l, f, q, -1); // compute r ← x_1 mod ℓ, Q
     fmpz_set(r, open.r); 
