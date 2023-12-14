@@ -94,21 +94,8 @@ int start_precomputation(_struct_polynomial_pp_* pp, const _struct_poly_ poly)
 			fmpz_init_set(pre_table[0][0], pp->cm_pp.g);
 			for(int i=1; i<= pp->n; i++){
 				fmpz_init_set(pre_table[i][0], pp->R[i-1]);		
-			
 			}
 			TimerOff();
-			TimerOn();
-			// compute precomputation table [1][1] ~ [n][2^(D-1)-1] that R[0]^1,R[0]^q,...,R[0]^{q^(2^precomute_num-1)} mod G
-			// #pragma omp parallel for
-			for(int i=1; i<= pp->n; i++)
-			{	
-				for(int j = 1; j < precompute_num/2; j++)
-				{
-					fmpz_init(pre_table[i][j]);
-					fmpz_powm(pre_table[i][j], pre_table[i][j-1], pp->q, pp->cm_pp.G);
-				}
-			}
-			RunTime1 = TimerOff();
 			TimerOn();
 			// [0][1] ~ [0][D] = q^1 ~ q^D 
 			for(j = 1; j < precompute_num; j++)
@@ -117,8 +104,20 @@ int start_precomputation(_struct_polynomial_pp_* pp, const _struct_poly_ poly)
 				fmpz_powm(pre_table[0][j], pre_table[0][j-1], pp->q, pp->cm_pp.G);
 			}
 			RunTime2 = TimerOff();
+			TimerOn();
+			// compute precomputation table [1][1] ~ [n][2^(D-1)-1] that R[0]^1,R[0]^q,...,R[0]^{q^(2^precomute_num-1)} mod G
+			// #pragma omp parallel for
+			for(int i=1; i<= pp->n; i++)
+			{	
+				precompute_num /= 2;
+				for(int j = 1; j < precompute_num; j++)
+				{
+					fmpz_init(pre_table[i][j]);
+					fmpz_powm(pre_table[i][j], pre_table[i][j-1], pp->q, pp->cm_pp.G);
+				}
+			}
+			RunTime1 = TimerOff();
 		}
-
 
 		RunTime1 += RunTime2;
 		printf("PRE_COMPUTE_(r_i + g) %12llu [us]\n", RunTime1);

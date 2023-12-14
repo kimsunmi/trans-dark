@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-FILENAME="./result_final_th1"
+FILENAME="./1019_trans_dark_rsa"
 
 echo "" > ${FILENAME}
 make clean_all
@@ -8,7 +8,7 @@ make all
 
 echo "================ compile w/ optimization option -O2 ================" >> ${FILENAME}
 
-for i in {10..16}
+for i in {10..13}
 do
     echo "================ test n = $i ================"
     echo "================ test n = $i ================" >> ${FILENAME}

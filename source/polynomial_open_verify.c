@@ -45,7 +45,7 @@ int pokRep_setup(_struct_polynomial_pp_* pp, const int lamda, const int m, const
         fmpz_mod(poly->fz, poly->fz, pp->p);
     }
 
-    // q range
+    // q range 2µ(λ + 1) + 1
     qbit = 128*(2*pp->n + 1)+1; 
 
     // set b <- {(p - 1)+(m - 1)(p - 1)^2}p^n
@@ -55,9 +55,6 @@ int pokRep_setup(_struct_polynomial_pp_* pp, const int lamda, const int m, const
 
 	fmpz_zero(pp->q);
 	fmpz_setbit(pp->q, qbit); // set qbit with pp->q
-    printf("q: ");
-    fmpz_print(pp->q);
-    printf("\n");
     // pp->cmp_pp: G = lamda size prime*prime, g = lamda/2 size random prime 
     KeyGen_RSAsetup(&(pp->cm_pp), lamda);
 
@@ -112,7 +109,7 @@ int pokRep_open(fmpz_t r, fmpz_t s[], fmpz_t Q, const fmpz_t l, const _struct_po
     fmpz_init_set(pp_tmp.G, pp->cm_pp.G);
     fmpz_init_set(pp_tmp.g, pp->cm_pp.g);
 
-    fmpz_one(Q);  
+    fmpz_one(Q);
 
     pokRep_open_precom(&open, &cm, &pp_tmp, l, f, q, -1); // compute r ← x_1 mod ℓ, Q
     fmpz_set(r, open.r); 
@@ -123,7 +120,6 @@ int pokRep_open(fmpz_t r, fmpz_t s[], fmpz_t Q, const fmpz_t l, const _struct_po
     // s, Q계산
     for(int i =0; i < pp->n; i++){
         fmpz_init(s[i]);
-
         fmpz_set(pp_tmp.g, pp->R[i]);
         pokRep_open_precom(&open, &cm, &pp_tmp, l, &(*g)[i], q, i);
         fmpz_set(s[i], open.r);
@@ -316,17 +312,6 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
     fmpz_one(one);
 
     Hprime_func(l, proof->D, proof->n, cm->C); 
-    printf("l: ");
-    fmpz_print(l);
-    printf("\n");
-    printf("D: ");
-    fmpz_print(proof->D);
-    printf("\n");
-    printf("n: %d",proof->n);
-    printf("\n");
-    printf("c: ");
-    fmpz_print(cm->C);
-    printf("\n");
     // C * product_(1,mu) D_i
     fmpz_set(CD, cm->C);
     for(int i = 0; i< pp->n; i++){
