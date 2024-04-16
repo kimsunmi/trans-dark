@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     fmpz_t* pre_table;
     fmpz_t rsa_g;
     fmpz_t tmp_g;
+    fmpz_t tmp2_g;
 
     BIGNUM* tmp = BN_new();
     BIGNUM* bn_4 = BN_new();
@@ -28,46 +29,42 @@ int main(int argc, char *argv[])
 
     fmpz_init(rsa_g);
     fmpz_init(tmp_g);
-
-    pre_table = (fmpz_t*)malloc(sizeof(fmpz_t)*rsa_pp.d);
-    for(int i = 0; i < rsa_pp.d; i++){
-        fmpz_init(pre_table[i]);
-    }
+    fmpz_init(tmp2_g);
 
     // generate another g
 	BN_generate_prime_ex(tmp, rsa_pp.cm_pp.security_level >> 1,0,NULL,NULL,NULL);
 	fmpz_set_str(rsa_g, BN_bn2hex(tmp), 16);
 
     // 시간차이를 보기 위해 d번 연산 반복-> G*g vs g^q(scalar)
+    // g^q
+    qbit = 128*(2*rsa_pp.n + 1)+1;
+    fmpz_setbit(q, qbit);
+    fmpz_set(tmp_g, rsa_g);
+
     // G*g
+    fmpz_set(tmp_g, rsa_pp.cm_pp.g);
     TimerOn();
-    for(int i = 1; i < 1000; i++){
-        fmpz_mul(tmp_g, rsa_pp.cm_pp.g, rsa_g);
+    // g^q
+    for(int j=0; j<qbit;j++){
+        fmpz_mul(tmp_g, tmp_g, rsa_g);
         fmpz_mod(tmp_g, tmp_g, rsa_pp.cm_pp.G);
     }
     Runtime_rsa_g = TimerOff();
 
-    // g^q
-    fmpz_set(pre_table[0], rsa_pp.cm_pp.g);
-    qbit = 128*(2*rsa_pp.n + 1)+1;
-    fmpz_setbit(q, qbit);
+
 
     TimerOn();
-    for(int j=1; j < 1000; j++)
+    for(int j=1; j < 2; j++)
     {
-        fmpz_powm(tmp_g, rsa_g, q, rsa_pp.cm_pp.G);
+        fmpz_powm(tmp_g, tmp_g, q, rsa_pp.cm_pp.G);
     }
     Runtime_rsa_s = TimerOff();
 
-    printf("group_Time %12llu [us]\n", Runtime_rsa_g);
-    printf("scalar_Time %12llu [us]\n", Runtime_rsa_s);
+    printf("g^q_scalar_Time %12llu [us]\n", Runtime_rsa_g);
+    printf("g^q_exp_Time %12llu [us]\n", Runtime_rsa_s);
 
     fmpz_clear(fmpz_p);
     fmpz_clear(q);
-    for(int i=0; i<rsa_pp.n; i++){
-        fmpz_clear(pre_table[i]);
-    }
-    free(pre_table);
 
 	return 0;
 }
