@@ -1,4 +1,5 @@
 # Source Code: Efficient Transparent Polynomial Commitments for zk-SNARKs
+-This is source code for RSA group.
 
 # Requirments
 - gmp, fmp, antic, openssl
@@ -9,6 +10,7 @@
 ```
 $ make all
 $ ./TRANS_Setup ${parameter bit} ${$$log(degree)=\mu$$}
+$ ./TRANS_Commit
 $ ./TRANS_Open
 $ ./TRANS_Verify 
 ```
