@@ -27,7 +27,8 @@
 
 	typedef struct{
 		fmpz_t* Fx; // polynomial coefficient
-		fmpz_t z; // random Z
+		fmpz_t* z; // random Z
+		fmpz_t* bz; // binary z (e.g. 1,z1,z2,z2z1,...)
 		fmpz_t fz; // F[z]
 		int d; // degree
 	}_struct_poly_;

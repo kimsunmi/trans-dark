@@ -17,7 +17,7 @@
 	int Read_proof(_struct_proof_ *proof);
 
     int Hprime_func(fmpz_t output, const fmpz_t* in, const int n, const fmpz_t in2);
-    int get_alpha_SHA256(fmpz_t alphaI, fmpz_t input, int idx);
+    int get_alpha_SHA256(fmpz_t alphaI, fmpz_t input, int idx, fmpz_t p);
 
     int KeyGen_RSAsetup( _struct_pp_ *pp, const int lamda );
     

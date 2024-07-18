@@ -13,12 +13,15 @@ int pokRep_setup(_struct_polynomial_pp_* pp, const int lamda, const int m, const
     BIGNUM* bn_tmp = BN_new();
     BIGNUM* bn_tmp2 = BN_new();
     fmpz_t fmpz_tmp;
+    fmpz_t fmpz_tmp1;
+    fmpz_t sum;
 
+    fmpz_init(sum);
     fmpz_init(fmpz_tmp);
+    fmpz_init(fmpz_tmp1);
     fmpz_init(pp->b);
     fmpz_init(pp->p);
     fmpz_init(pp->q);
-    fmpz_init(poly->z);
     fmpz_init(poly->fz);
     (pp->cm_pp).security_level = lamda;
     fmpz_init((pp->cm_pp).g);
@@ -32,19 +35,34 @@ int pokRep_setup(_struct_polynomial_pp_* pp, const int lamda, const int m, const
     fmpz_set_str(pp->p, BN_bn2hex(bn_tmp), 16); 
 
     // poly->z lamda비트 0 <= bn_tmp2 < bn_tmp 범위의 random  16진수 생성
-    BN_rand_range_ex(bn_tmp2, bn_tmp, lamda, ctx); // mod p 범위 안에서 뽑기
-    fmpz_set_str(poly->z, BN_bn2hex(bn_tmp2), 16);
+    (poly->z) = (fmpz_t*)calloc(pp->n, sizeof(fmpz_t));
+    (poly->bz) = (fmpz_t*)calloc(pp->d, sizeof(fmpz_t));
 
+    for(int i=0;i < pp->n;i++){
+		fmpz_init(poly->z[pp->n-i-1]);
+        BN_rand_range_ex(bn_tmp2, bn_tmp, lamda, ctx); // mod p 범위 안에서 뽑기
+        fmpz_set_str(poly->z[pp->n-i-1], BN_bn2hex(bn_tmp2), 16);
+    }
     // f(z) 계산해서 poly에 저장
     for(int i=0; i< poly->d; i++){
-        fmpz_powm_ui(fmpz_tmp, poly->z, i, pp->p);
-        fmpz_mul(fmpz_tmp, fmpz_tmp, poly->Fx[i]);
+        fmpz_one(sum);
+        fmpz_init(poly->bz[i]);
+
+        fmpz_set_ui(fmpz_tmp1, i);
+;        for(int j=0; j<pp->n; j++){
+            if (fmpz_tstbit(fmpz_tmp1,j)) {
+                fmpz_mul(sum, sum, poly->z[j]);
+                fmpz_mod(sum, sum, pp->p);
+			}
+        } // sum에 다변수 z의 곱 저장
+
+        fmpz_set(poly->bz[i],sum);
+        fmpz_mul(fmpz_tmp, sum, poly->Fx[i]); // 계수 인덱스에 맞춰 z곱 연산
         fmpz_mod(fmpz_tmp, fmpz_tmp, pp->p);
 
         fmpz_add(poly->fz, poly->fz, fmpz_tmp);
         fmpz_mod(poly->fz, poly->fz, pp->p);
     }
-
     // q range 2µ(λ + 1) + 1
     qbit = 128*(2*pp->n + 1)+1; 
 
@@ -137,7 +155,7 @@ int pokRep_open(fmpz_t r, fmpz_t s[], fmpz_t Q, const fmpz_t l, const _struct_po
 // prover compute proof: D_i, y_{i,r}, alpha
 int Open(_struct_proof_ *proof, _struct_polynomial_pp_* pp, _struct_commit_* cm, _struct_poly_* poly)
 {
-    unsigned long long int OPEN_RUNTIME = 0;
+    unsigned long long int OPEN_RUNTIME = 0, PokRep_RUNTIME = 0;
     unsigned long long int* pRuntime = &OPEN_RUNTIME;
     BN_CTX* ctx = BN_CTX_new();
     fmpz_t CD;
@@ -232,15 +250,14 @@ int Open(_struct_proof_ *proof, _struct_polynomial_pp_* pp, _struct_commit_* cm,
 
         // y[i] += g_(i, R)[j]*z^j
         for(j=0;j<d;j++){
-            fmpz_powm_ui(fmpz_tmp1, poly->z, j, pp->p); // z^j mod p
-            fmpz_mul(fmpz_tmp1, fmpz_tmp1, gR[i].Fx[j]); // g_(i,r)[j]*z^j
+            fmpz_mul(fmpz_tmp1, poly->bz[j], gR[i].Fx[j]); // g_(i,r)[j]*z^j
             fmpz_mod(fmpz_tmp1, fmpz_tmp1, pp->p); // g_(i,r)[j]*z^j mod p
             fmpz_add(proof->y[i], proof->y[i], fmpz_tmp1); // y[i] += g_(i,r)[j]*z^j
             fmpz_mod(proof->y[i], proof->y[i], pp->p); //  mod p
         }
 
-        get_alpha_SHA256(alphaI, cm->C, i); // get random alpha
-        fmpz_mod(alphaI, alphaI, pp->p); // alpha_i <- alpha_i mod p 
+        get_alpha_SHA256(alphaI, cm->C, i, pp->p); // get random alpha
+        //fmpz_mod(alphaI, alphaI, pp->p); // alpha_i <- alpha_i mod p 
 
         for(j=0;j<d;j++){
             fmpz_mul(fmpz_tmp2, alphaI, gR[i].Fx[j]); // alphaI * g_{i,R}
@@ -261,7 +278,9 @@ int Open(_struct_proof_ *proof, _struct_polynomial_pp_* pp, _struct_commit_* cm,
     // input (G, g벡터, r벡터), CD, (f(q)벡터, g(q)벡터)
     pokRep_open(proof->r, proof->s, proof->Q, l_prime, pp, pp->q, &gR, poly);
 
-    OPEN_RUNTIME += TimerOff();
+    PokRep_RUNTIME += TimerOff();
+    OPEN_RUNTIME += PokRep_RUNTIME;
+    printf("PokRep_TIME %12llu [us]\n", PokRep_RUNTIME);
 
     fmpz_clear(fmpz_tmp1);
     fmpz_clear(fmpz_tmp2);
@@ -288,8 +307,9 @@ int Open(_struct_proof_ *proof, _struct_polynomial_pp_* pp, _struct_commit_* cm,
     return OPEN_RUNTIME;
 }
 
-int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz, _struct_proof_ *proof)
+int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t* z, fmpz_t fz, _struct_proof_ *proof)
 {    
+    unsigned long long int RunTime = 0, RunTime_pok = 0;
     int flag = 1;
     char buffer[1000]={0};
     FILE *fp;
@@ -311,6 +331,9 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
 
     fmpz_one(one);
 
+    TimerOff();
+
+    TimerOn();
     Hprime_func(l, proof->D, proof->n, cm->C); 
     // C * product_(1,mu) D_i
     fmpz_set(CD, cm->C);
@@ -318,8 +341,11 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
         fmpz_mul(CD, CD, proof->D[i]);
         fmpz_mod(CD, CD, pp->cm_pp.G);
     }
-
+    RunTime += TimerOff();
+    TimerOn();
     flag = PoKRep_Ver(proof->r, proof->Q, CD, proof->s, pp->R, l, pp);
+    RunTime_pok += TimerOff();
+
     printf("pokrep result>> %d\n", flag); // accept 확인
 
     fmpz_init(s_i);
@@ -338,14 +364,14 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
     fmpz_set(s_i, proof->r);
     fmpz_set(y_i, fz);
 
+    TimerOn();
     for(int i = 0; i < proof->n ; i++){
         fmpz_mul_2exp(fmpz_tmp, one, (proof->n - i - 1)); // 2^(n-i)
         
         // q^2^(n-i), z^2^(n-i) compute
         fmpz_powm(q_2exp, pp->q, fmpz_tmp, l);
-        fmpz_powm(z_2exp, z, fmpz_tmp, pp->p);
 
-        get_alpha_SHA256(alphaI, cm->C, i);
+        get_alpha_SHA256(alphaI, cm->C, i, pp->p);
         fmpz_mod(alphaI_s, alphaI, l); // alphaI_i <- alphaI mod l
 
         fmpz_mul(s_L, q_2exp, proof->s[i]);
@@ -360,7 +386,7 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
 
         fmpz_mod(alphaI_y, alphaI, pp->p); // alphaI_i <- alphaI mod l
 
-        fmpz_mul(y_L, z_2exp, proof->y[i]);
+        fmpz_mul(y_L, z[proof->n-i-1], proof->y[i]);
         fmpz_mod(y_L, y_L, pp->p);
         fmpz_sub(y_L, y_i, y_L);
         fmpz_mod(y_L, y_L, pp->p); // y_(i,L) 계산 완료
@@ -384,6 +410,10 @@ int Verify(_struct_polynomial_pp_* pp, _struct_commit_* cm, fmpz_t z, fmpz_t fz,
     fmpz_abs(fmpz_tmp, proof->gx); // 바운드도 accept 
     flag &= fmpz_cmp(fmpz_tmp, pp->b) < 0 ? 1 : 0; 
     printf("|g| < b >> %d\n", flag);
+
+    RunTime += TimerOff();
+    printf("Poly_pok_Verify %12llu [us]\n", RunTime_pok);
+    printf("Poly_Verify %12llu [us]\n", RunTime+RunTime_pok);
 
     return flag;
 }

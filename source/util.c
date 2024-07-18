@@ -84,6 +84,7 @@ int Read_poly(_struct_poly_* poly)
 {
 	FILE *fp;
 	int i = 0, flag = 1;
+	int n=0;
 	unsigned char *str;
 	str = (unsigned char *)calloc(1000, sizeof(unsigned char));    
 
@@ -91,6 +92,7 @@ int Read_poly(_struct_poly_* poly)
 	
 	fscanf(fp, "%s", str);
 	poly->d = atoi(str);
+	n = ceil(log2(poly->d));
 
 	poly->Fx = (fmpz_t*)calloc(poly->d, sizeof(fmpz_t));
 	for(i=0; i<poly->d; i++)
@@ -100,8 +102,18 @@ int Read_poly(_struct_poly_* poly)
 		fmpz_set_str(poly->Fx[poly->d-i-1], str, 16);
 	}
 
-	fscanf(fp, "%s", str);
-	fmpz_set_str(poly->z, str, 16);
+	poly->z = (fmpz_t*)calloc(n, sizeof(fmpz_t));
+	for(i=0;i<n;i++){
+		fscanf(fp, "%s", str);
+		fmpz_set_str(poly->z[i], str, 16);
+	}
+	poly->bz = (fmpz_t*)calloc(poly->d, sizeof(fmpz_t));
+	for(i=0; i<poly->d; i++)
+	{			
+		fmpz_init(poly->bz[i]);			     
+		fscanf(fp, "%s", str);
+		fmpz_set_str(poly->bz[i], str, 16);
+	}
 
 	fscanf(fp, "%s", str);
 	fmpz_set_str(poly->fz, str, 16);
@@ -271,11 +283,14 @@ int make_poly(_struct_poly_* poly, int d)
 int write_poly(const _struct_poly_* poly){
 	FILE *fp;
 	int i = 0, flag = 1;
+	int n = 0;
 	unsigned char* str;
 
 	fp = fopen("./Txt/poly.txt", "w");
 
 	flag &= fprintf(fp, "%d\n", poly->d);
+	n = ceil(log2(poly->d));
+
 	for(int i = 0; i < poly->d; i++)
 	{
 		//fmpz_set_ui(bn_tmp, 1+i); // 1+i // random 
@@ -285,9 +300,19 @@ int write_poly(const _struct_poly_* poly){
 
 	flag &= fprintf(fp, "\n");
 
-	str = fmpz_get_str(NULL, 16, poly->z);
-	flag &= fprintf(fp, "%s\n", str);
-	
+	for(int i=0; i<n;i++){
+		str = fmpz_get_str(NULL, 16, poly->z[i]);
+		flag &= fprintf(fp, "%s ", str);
+	}
+	flag &= fprintf(fp, "\n");
+
+		for(int i=0; i<poly->d;i++){
+		str = fmpz_get_str(NULL, 16, poly->bz[i]);
+		flag &= fprintf(fp, "%s ", str);
+	}
+
+	flag &= fprintf(fp, "\n");
+
 	str = fmpz_get_str(NULL, 16, poly->fz);
 	flag &= fprintf(fp, "%s\n", str);
 
@@ -344,10 +369,10 @@ int Hprime_func(fmpz_t output, const fmpz_t* in, const int n, const fmpz_t in2)
 }
 
 // make alpha
-int get_alpha_SHA256(fmpz_t alphaI, fmpz_t input, int idx)
+int get_alpha_SHA256(fmpz_t alphaI, fmpz_t input, int idx, fmpz_t p)
 {
     unsigned char digest[SHA256_DIGEST_LENGTH]={0};
-	unsigned char mdString[SHA256_DIGEST_LENGTH/2+1]={0};
+	unsigned char mdString[SHA256_DIGEST_LENGTH*2+1]={0};
     char* str_input;
     fmpz_t tmpz_tmp;
 
@@ -356,12 +381,12 @@ int get_alpha_SHA256(fmpz_t alphaI, fmpz_t input, int idx)
     fmpz_add_ui(tmpz_tmp, tmpz_tmp, 2*idx);
     str_input = fmpz_get_str(NULL, 16, tmpz_tmp);
 
-	SHA256(str_input, strlen(str_input), digest);  
-    for(int i = 0; i < SHA256_DIGEST_LENGTH/4; i++){
-        digest[i] = (digest[i] ^ digest[16+i] ^ digest[8+i] ^ digest[24+i]);       
+	 SHA256(str_input, strlen(str_input), digest);  
+    for(int i = 0; i < SHA256_DIGEST_LENGTH; i++){
         sprintf(&mdString[i*2], "%02x", (unsigned int)digest[i]);
     }
     fmpz_set_str(alphaI, mdString, 16);
+		fmpz_mod(alphaI, alphaI, p);
     free(str_input);
 
     fmpz_clear(tmpz_tmp);

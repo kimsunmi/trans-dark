@@ -1,0 +1,281 @@
+================ compile w/ optimization option -O2 ================
+================ test n = 7 ================
+SETUP....
+d_bit 7 d-128 q-1921
+KeyGen_Time        43882 [us]
+parameter size 5248
+KeyGen_I/O_          346 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)       105588 [us]
+PRE_COMPUTE_g        54907 [us]
+Commit_PRE_         1380 [us]
+Commit_NEW_        55445 [us]
+commit size 1023
+Commit_I/O_         1441 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)       106603 [us]
+PRE_COMPUTE_g        55050 [us]
+PokRep_TIME       118193 [us]
+__Poly_Open       125493 [us]
+proof size 11994
+__Open_I/O_         1538 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify          672 [us]
+Poly_Verify         2919 [us]
+Verify_I/O_         1421 [us]
+Verify Result [1]
+
+================ test n = 8 ================
+SETUP....
+d_bit 8 d-256 q-2177
+KeyGen_Time        45246 [us]
+parameter size 5760
+KeyGen_I/O_           80 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)       247928 [us]
+PRE_COMPUTE_g       124493 [us]
+Commit_PRE_         2878 [us]
+Commit_NEW_       126114 [us]
+commit size 1024
+Commit_I/O_         1530 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)       241828 [us]
+PRE_COMPUTE_g       123000 [us]
+PokRep_TIME       265762 [us]
+__Poly_Open       278876 [us]
+proof size 13565
+__Open_I/O_         1617 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify          704 [us]
+Poly_Verify         2824 [us]
+Verify_I/O_         1475 [us]
+Verify Result [1]
+
+================ test n = 9 ================
+SETUP....
+d_bit 9 d-512 q-2433
+KeyGen_Time        38595 [us]
+parameter size 6272
+KeyGen_I/O_          149 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)       539257 [us]
+PRE_COMPUTE_g       272580 [us]
+Commit_PRE_         5620 [us]
+Commit_NEW_       277898 [us]
+commit size 1024
+Commit_I/O_         1769 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)       539244 [us]
+PRE_COMPUTE_g       271847 [us]
+PokRep_TIME       597968 [us]
+__Poly_Open       622300 [us]
+proof size 15096
+__Open_I/O_         1727 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify          792 [us]
+Poly_Verify         2829 [us]
+Verify_I/O_         1604 [us]
+Verify Result [1]
+
+================ test n = 10 ================
+SETUP....
+d_bit 10 d-1024 q-2689
+KeyGen_Time        55820 [us]
+parameter size 6784
+KeyGen_I/O_           62 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)      1192459 [us]
+PRE_COMPUTE_g       598255 [us]
+Commit_PRE_        10623 [us]
+Commit_NEW_       612899 [us]
+commit size 1024
+Commit_I/O_         2075 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)      1194913 [us]
+PRE_COMPUTE_g       600754 [us]
+PokRep_TIME      1355189 [us]
+__Poly_Open      1403140 [us]
+proof size 16614
+__Open_I/O_         2331 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify          835 [us]
+Poly_Verify         4092 [us]
+Verify_I/O_         2429 [us]
+Verify Result [1]
+
+================ test n = 11 ================
+SETUP....
+d_bit 11 d-2048 q-2945
+KeyGen_Time        50904 [us]
+parameter size 7296
+KeyGen_I/O_           78 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)      2628104 [us]
+PRE_COMPUTE_g      1320606 [us]
+Commit_PRE_        21373 [us]
+Commit_NEW_      1332039 [us]
+commit size 1024
+Commit_I/O_         2621 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)      2652655 [us]
+PRE_COMPUTE_g      1326288 [us]
+PokRep_TIME      3053458 [us]
+__Poly_Open      3147650 [us]
+proof size 18138
+__Open_I/O_         2993 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify          908 [us]
+Poly_Verify         4201 [us]
+Verify_I/O_         2939 [us]
+Verify Result [1]
+
+================ test n = 12 ================
+SETUP....
+d_bit 12 d-4096 q-3201
+KeyGen_Time        52868 [us]
+parameter size 7808
+KeyGen_I/O_           65 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)      5683995 [us]
+PRE_COMPUTE_g      2850954 [us]
+Commit_PRE_        42617 [us]
+Commit_NEW_      2900675 [us]
+commit size 1023
+Commit_I/O_         4013 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)      5724288 [us]
+PRE_COMPUTE_g      2862873 [us]
+PokRep_TIME      7009418 [us]
+__Poly_Open      7197069 [us]
+proof size 19673
+__Open_I/O_         4070 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify          979 [us]
+Poly_Verify         4505 [us]
+Verify_I/O_         4139 [us]
+Verify Result [1]
+
+================ test n = 13 ================
+SETUP....
+d_bit 13 d-8192 q-3457
+KeyGen_Time        60000 [us]
+parameter size 8320
+KeyGen_I/O_           81 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)     12421221 [us]
+PRE_COMPUTE_g      6213127 [us]
+Commit_PRE_        87169 [us]
+Commit_NEW_      6338122 [us]
+commit size 1022
+Commit_I/O_         6450 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)     12514910 [us]
+PRE_COMPUTE_g      6264156 [us]
+PokRep_TIME     16797639 [us]
+__Poly_Open     17169436 [us]
+proof size 21196
+__Open_I/O_         6608 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify         1070 [us]
+Poly_Verify         3167 [us]
+Verify_I/O_         6326 [us]
+Verify Result [1]
+
+================ test n = 14 ================
+SETUP....
+d_bit 14 d-16384 q-3713
+KeyGen_Time        66539 [us]
+parameter size 8832
+KeyGen_I/O_           92 [us]
+
+COMMIT....
+Start precomputation
+PRE_COMPUTE_(r_i + g)     26663542 [us]
+PRE_COMPUTE_g     13339008 [us]
+Commit_PRE_       173402 [us]
+Commit_NEW_     13565225 [us]
+commit size 1024
+Commit_I/O_        12179 [us]
+
+OPEN....
+Start precomputation
+PRE_COMPUTE_(r_i + g)     26760300 [us]
+PRE_COMPUTE_g     13399886 [us]
+PokRep_TIME     42774583 [us]
+__Poly_Open     43520339 [us]
+proof size 22727
+__Open_I/O_        11984 [us]
+
+VERIFY....
+pokrep result>> 1
+g =? s_i>> 1
+g =? y_i>> 1
+|g| < b >> 1
+Poly_pok_Verify         1135 [us]
+Poly_Verify         4535 [us]
+Verify_I/O_        12192 [us]
+Verify Result [1]
+

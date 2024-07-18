@@ -2,7 +2,7 @@
 #include "../hedder/polynomial_open_verify.h"
 #include "../hedder/util.h"
 #include <unistd.h>
-#include <omp.h>
+//#include <omp.h>
 extern int global_num_threads;
 
 static fmpz_t **pre_table;

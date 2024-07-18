@@ -6,7 +6,7 @@ int global_num_threads = 1;
 // Verify: verify with poly, pp, commit, proof
 int main(int argc, char *argv[])
 {
-	unsigned long long int RunTime = 0, RunTime_IO = 0;
+	unsigned long long int RunTime_IO = 0;
     int flag = 0;
     _struct_polynomial_pp_ pp = {0};
     _struct_poly_ poly = {0};
@@ -28,11 +28,8 @@ int main(int argc, char *argv[])
     Read_proof(&proof);
     RunTime_IO = TimerOff();
 
-    TimerOn();
     flag = Verify(&pp, &cm, poly.z, poly.fz, &proof);
-    RunTime = TimerOff();
 
-    printf("Poly_Verify %12llu [us]\n", RunTime);
     printf("Verify_I/O_ %12llu [us]\n", RunTime_IO);
     printf("Verify Result [%d]\n", flag);
 
