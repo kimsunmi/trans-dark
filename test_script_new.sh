@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILENAME="./1024_rsa_result_0626"
+FILENAME="./1024_rsa_result"
 
 # echo "" > ${FILENAME}
 # make clean_all
